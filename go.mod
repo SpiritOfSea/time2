@@ -1,4 +1,4 @@
-module github.com/BishopFox/jsluice
+module github.com/SpiritOfSea/time2
 
 go 1.18
 

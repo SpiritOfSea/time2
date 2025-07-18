@@ -45,6 +45,7 @@ type options struct {
 	rawOutput       bool
 	includeFilename bool
 	format          bool
+	timeout         string
 }
 
 const (
@@ -110,6 +111,7 @@ func init() {
 			"  -r, --raw-output             Do not convert values to native types",
 			"  -f, --include-filename       Include the filename in the output",
 			"  -F, --format                 Format source code in the output",
+			"  -t, --timeout                Pause between requests, in seconds (1, 0.5 etc)",
 			"",
 			"Examples:",
 			"  jsluice urls -C 'auth=true; user=admin;' -H 'Specific-Header-One: true' -H 'Specific-Header-Two: false' local_file.js https://remote.host/example.js",
@@ -134,6 +136,7 @@ func main() {
 	flag.BoolVarP(&opts.help, "help", "h", false, "")
 	flag.BoolVarP(&opts.warc, "warc", "w", false, "")
 	flag.BoolVarP(&opts.certCheck, "no-check-certificate", "i", false, "Ignore validation of server certificates")
+	flag.StringVarP(&opts.timeout, "timeout", "t", "0.05", "Pause duration in seconds (e.g., 1, 0.5)")
 
 	// url options
 	flag.BoolVarP(&opts.includeSource, "include-source", "S", false, "Include the source code where the URL was found")
@@ -220,6 +223,16 @@ func main() {
 		go func() {
 			defer wg.Done()
 			for filename := range jobs {
+				pauseSeconds, err := strconv.ParseFloat(opts.timeout, 64)
+        		if err != nil {
+            		fmt.Println("Invalid input:", opts.timeout)
+			    }
+
+       			// Convert seconds to time.Duration
+        		duration := time.Duration(pauseSeconds * float64(time.Second))
+
+        		time.Sleep(duration)
+				
 
 				if opts.warc {
 					responses, err := readWARCFile(filename)
